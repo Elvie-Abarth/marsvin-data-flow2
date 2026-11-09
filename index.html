@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marsvin Data Flow</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header><h1>Marsvin</h1><span>Data flow: browser → Razor Pages → Stores → SQL Server (plain ADO.NET, no ORM)</span></header>
+<div id="tabs"></div>
+<main>
+  <div id="stage"><svg id="svg" viewBox="0 0 1200 770" preserveAspectRatio="xMidYMid meet"></svg></div>
+  <aside>
+    <h2 id="title"></h2>
+    <div id="cap"></div>
+    <pre id="sql"></pre>
+    <div class="legend"><span style="background:var(--read)"></span>read<span style="background:var(--write)"></span>write<span style="background:var(--warn)"></span>processing</div>
+    <div id="cols"></div>
+  </aside>
+</main>
+<section id="dg">
+  <nav id="dglist"></nav>
+  <div id="dgview">
+    <div id="dgbar">
+      <div><h2 id="dgtitle"></h2><p id="dgdesc"></p></div>
+      <div id="dgtools">
+        <button id="dgout" title="Zoom out">−</button><button id="dgfit" title="Fit width">Fit</button><button id="dgin" title="Zoom in">+</button>
+        <a id="dgpng" target="_blank" rel="noopener">PNG</a>
+      </div>
+    </div>
+    <div id="dgcanvas"></div>
+  </div>
+</section>
+<footer>
+  <button id="speed" title="Autoplay speed">Speed: Normal</button><button id="prev">◀</button><button id="play">⏸</button><button id="next">▶</button>
+  <div id="prog"><div></div></div>
+</footer>
+
+<script src="js/schema.js"></script>
+<script src="js/stage.js"></script>
+<script src="js/scenes/registry.js"></script>
+<script src="js/scenes/shop.js"></script>
+<script src="js/scenes/accounts.js"></script>
+<script src="js/scenes/admin.js"></script>
+<script src="js/scenes/security.js"></script>
+<script src="js/scenes/order.js"></script>
+<script src="js/animation.js"></script>
+<script src="js/diagram-data.js"></script>
+<script src="js/diagrams.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

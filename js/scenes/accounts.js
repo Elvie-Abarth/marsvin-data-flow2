@@ -1,0 +1,44 @@
+// Scenes: Accounts and passwords.
+// Each scene = a title plus steps. A step moves the packet along `path`,
+// marks tables as `read` / `write` / `active`, and shows a caption and the SQL.
+defineScenes([
+ {name:"Register",title:"Create account (user story 1)",steps:[
+  {path:["customer","web"],cap:"Customer fills in the form. The password field has a live strength meter (client-side guidance, not validation).",sql:"POST /Account/Register\n[rate limited per IP]"},
+  {path:["web","back","captcha"],active:["captcha"],cap:"Google reCAPTCHA is verified on the server before anything else happens.",sql:"recaptcha.VerifyAsync(response)"},
+  {path:["captcha","back"],active:["back"],cap:"PasswordPolicy.Validate: min 12 characters (15 for admins), upper + lower case, a digit and a symbol, and not an obvious password: not on the common-password list (exact match, so a long passphrase containing a common word is fine), no shop words like “marsvin” or “guineapig”, and not built from the user’s own e-mail or name. The same rules drive the strength meter. Then PBKDF2 hashing (PasswordHasher) - never stored or logged in plain text.",sql:"PasswordPolicy.Validate(\n  password, email, displayName, english)\nhash = new PasswordHasher<..>()\n        .HashPassword(null, pw)"},
+  {path:["back","Users"],write:["Users"],cap:"New account is created as Role 0 (Customer) - the form can never create staff. If the e-mail already exists the page answers exactly the same (“check your email”) and the owner gets a notice instead, so nobody can test which addresses are registered. A fresh SecurityStamp is generated for the account.",sql:"INSERT INTO dbo.Users\n(Email, PasswordHash, DisplayName,\n Role, IsActive)\nVALUES (@Email,@Hash,@Name, 0, 1);\n-- SecurityStamp default NEWID()"},
+  {path:["Users","back","PendingLogins"],write:["PendingLogins"],cap:"A random 256-bit token is created. Only its SHA-256 hash is stored, so a leaked database cannot be turned into working links.",sql:"INSERT INTO dbo.PendingLogins\n(UserId, TokenHash, ExpiresAt)\nVALUES (@u, @sha256, NOW + 15 min);"},
+  {path:["PendingLogins","back","mail"],active:["mail"],cap:"A confirmation link is e-mailed. Opening it is what signs the new account in for the first time (proves the e-mail address is theirs).",sql:"/Account/ConfirmLogin?token=...\n-> /Account/CheckEmail"},
+  {path:["mail","back","web","customer"],cap:"The customer sees “check your email”. A small script polls and continues automatically once the link is opened.",sql:"302 → /Account/CheckEmail"}
+ ]},
+ {name:"Login",title:"Login: password + e-mail link (or TOTP)",steps:[
+  {path:["customer","web","back"],cap:"Email and password are posted over HTTPS. reCAPTCHA is checked, and LoginLockoutTracker adds an increasing delay after each failure.",sql:"POST /Account/Login\n[EnableRateLimiting(\"auth\")]"},
+  {path:["back","Users"],read:["Users"],cap:"The user is read by email (parameterized).",sql:"SELECT UserId, PasswordHash, Role,\n       IsActive, TotpEnabled\nFROM dbo.Users\nWHERE Email = @Email;"},
+  {path:["Users","back","SecurityEvents"],write:["SecurityEvents"],active:["back"],cap:"The password is verified against the stored PBKDF2 hash. A wrong password (or an attempt on a locked account) is written to SecurityEvents with IP and path - never the password. Delay 3^n seconds, 3rd failure e-mails the owner, 5th hard-locks until a password reset.",sql:"hasher.VerifyHashedPassword(...)\n!= Failed\n-- else:\nmonitor.RecordAsync(LoginFailed,\n  email, ip, path);"},
+  {path:["back","PendingLogins"],write:["PendingLogins"],cap:"Correct password is NOT a login yet. A single-use token (hash only, 15 min) is stored. With TOTP enabled the user goes to the 6-digit code page instead (5 min token, no email).",sql:"INSERT INTO dbo.PendingLogins\n(UserId, TokenHash, ReturnUrl, ExpiresAt)\n-- one row per user, replaces older"},
+  {path:["PendingLogins","back","mail"],active:["mail"],cap:"The login link is e-mailed to the account owner.",sql:"/Account/ConfirmLogin?token=..."},
+  {path:["mail","web","back","PendingLogins"],read:["PendingLogins"],write:["PendingLogins"],cap:"Clicking the link: the token is hashed, looked up and consumed (single use, expiry checked).",sql:"-- Consume(token)\nDELETE FROM dbo.PendingLogins\nWHERE TokenHash = @hash\n  AND ExpiresAt > NOW;"},
+  {path:["PendingLogins","back","Users"],write:["Users"],cap:"Only now the session is created: HttpOnly, SameSite=Lax cookie (Secure in production). It carries the account’s SecurityStamp, ends after 30 min idle or 8 h at most, and is re-checked against Users on every request. LastActiveAt is refreshed (2-year inactivity rule).",sql:"UPDATE dbo.Users\nSET LastActiveAt = NOW,\n    InactivityWarningStage = 0\nWHERE UserId = @u;\n-- cookie claim: marsvin:stamp"},
+  {path:["Users","back","web","customer"],cap:"A guest cart from before login is merged into the account cart.",sql:"302 → returnUrl\n(IsSafeLocalUrl checked)"}
+ ]},
+ {name:"Password",title:"Change / reset password (user stories 6 + 11)",steps:[
+  {path:["customer","web","back"],cap:"Change: the user must enter the current password again. Reset: the user clicks “forgot password” on the login page.",sql:"POST /Account/Profile  (change)\nPOST /Account/ForgotPassword"},
+  {path:["back","Users"],read:["Users"],cap:"Change: the current password is verified against the stored hash first. Reset: the account is looked up, but the answer looks the same whether it exists or not (no user enumeration).",sql:"SELECT PasswordHash FROM dbo.Users\nWHERE UserId = @sessionUserId;"},
+  {path:["Users","back","PendingLogins"],write:["PendingLogins"],cap:"Reset only: the same hashed single-use token mechanism as login, link valid for a limited time.",sql:"INSERT INTO dbo.PendingLogins ..."},
+  {path:["PendingLogins","back","mail"],active:["mail"],cap:"Reset link is e-mailed. The new password is never sent by e-mail.",sql:"/Account/ResetPassword?token=..."},
+  {path:["mail","back","Users"],write:["Users"],cap:"The new password must pass PasswordPolicy (12+ chars, 15 for admins, mixed case, digit, symbol, not on the common-password list or built from shop words / own name), then gets a fresh PBKDF2 hash. The SecurityStamp is replaced, so every other logged-in session (also a thief’s) stops working. A reset also clears the login lockout.",sql:"UPDATE dbo.Users\nSET PasswordHash = @NewHash,\n    SecurityStamp = NEWID()\nWHERE UserId = @u;"},
+  {path:["Users","back","mail"],active:["mail"],cap:"The account owner is notified that the password changed, so a takeover is noticed (ASVS 2.5.5).",sql:"\"Your password was changed\""}
+ ]},
+ {name:"TOTP",title:"Optional second factor (authenticator app)",steps:[
+  {path:["customer","web","back"],cap:"On /Account/Profile the user starts enrolling an authenticator app (RFC 6238, same as Google / Microsoft Authenticator).",sql:"POST Profile?handler=StartTotpEnrollment"},
+  {path:["back","Users"],write:["Users"],cap:"A secret is generated and stored ENCRYPTED (ASP.NET Data Protection), because it must be recoverable but must not leak with the database. TotpEnabled is still 0.",sql:"UPDATE dbo.Users\nSET TotpSecret = @encrypted\nWHERE UserId = @u;"},
+  {path:["Users","back"],active:["back"],cap:"The user must enter one valid 6-digit code first. This proves the QR code really works, so nobody is locked out.",sql:"Totp.Validate(secret, code)"},
+  {path:["back","Users"],write:["Users"],cap:"TotpEnabled is switched on. From now on login skips the e-mail link and asks for the code (wrong codes count toward the same lockout).",sql:"UPDATE dbo.Users\nSET TotpEnabled = 1\nWHERE UserId = @u;"}
+ ]},
+ {name:"GDPR",title:"Privacy: deletion and inactivity",steps:[
+  {path:["customer","web","back"],cap:"A customer can delete their own account from /Account/Profile (right to erasure). /Privatliv explains what is collected.",sql:"POST Profile?handler=DeleteAccount"},
+  {path:["back","Orders"],write:["Orders"],cap:"Past orders survive as history but the link to the person is cut, so they are no longer personally identifiable.",sql:"UPDATE dbo.Orders\nSET UserId = NULL\nWHERE UserId = @u;"},
+  {path:["Orders","back","Users"],write:["Users","CartItems"],cap:"The account and cart rows are deleted.",sql:"DELETE FROM dbo.CartItems WHERE UserId=@u;\nDELETE FROM dbo.Users WHERE UserId=@u;"},
+  {path:["Users","back","mail"],read:["Users"],active:["mail"],cap:"A background job (InactiveAccountCleanupService) runs daily. After 2 years of inactivity accounts are deleted automatically, with warning e-mails 2 months and 1 month before. SecurityEvents (with IP addresses) are pruned after a retention window.",sql:"WHERE LastActiveAt < NOW - 2 years\nInactivityWarningStage 0 → 1 → 2"}
+ ]}
+]);
