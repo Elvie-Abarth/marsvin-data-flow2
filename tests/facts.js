@@ -1,5 +1,5 @@
 // Accuracy facts: claims the scenes make about the real Marsvin app.
-// Each fact was checked against the real source (repo Elvie-Abarth/Esti-whent-creazy-whit-the-protject,
+// Each fact was checked against the real source (repo Elvie-Abarth/marsvin-webshop,
 // folder marsvin-web/) on 2026-11-10. `src` says where. If the real app changes, update the fact AND the
 // scene text together - a failing test here means the animation and the claim have drifted apart.
 //

@@ -1,7 +1,7 @@
 // Diagrams tab: lists the project diagrams and renders them live with Mermaid.
 // ---------- Diagrams tab (rendered live from the project's .mermaid sources) ----------
 const DG=DG_DATA; // from js/diagram-data.js
-const RAW='https://raw.githubusercontent.com/Elvie-Abarth/Esti-whent-creazy-whit-the-protject/master/diagrams/png/';
+const RAW='https://raw.githubusercontent.com/Elvie-Abarth/marsvin-webshop/master/diagrams/png/';
 let dgInit=false,dgCur=null,dgZoom=100,merP=null;const dgCache={};
 function getMermaid(){
   if(!merP)merP=import('https://cdn.jsdelivr.net/npm/mermaid@11.4.0/dist/mermaid.esm.min.mjs').then(m=>{

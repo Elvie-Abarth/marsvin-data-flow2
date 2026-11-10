@@ -42,7 +42,7 @@ META = [
 ]
 
 # Source: a local diagrams/ folder if one is given or exists, otherwise the real repo on GitHub.
-REPO = 'https://raw.githubusercontent.com/Elvie-Abarth/Esti-whent-creazy-whit-the-protject/master/diagrams/'
+REPO = 'https://raw.githubusercontent.com/Elvie-Abarth/marsvin-webshop/master/diagrams/'
 use_local = len(sys.argv) > 1 or os.path.isdir(DIAGRAMS)
 
 def read_source(name):

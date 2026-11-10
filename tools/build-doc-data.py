@@ -5,7 +5,7 @@ To add a document: add a line to DOCS below and run the script.
 """
 import json, os, urllib.request
 
-REPO = 'https://raw.githubusercontent.com/Elvie-Abarth/Esti-whent-creazy-whit-the-protject/master/'
+REPO = 'https://raw.githubusercontent.com/Elvie-Abarth/marsvin-webshop/master/'
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js', 'doc-data.js')
 
 # (group, repo path, title)

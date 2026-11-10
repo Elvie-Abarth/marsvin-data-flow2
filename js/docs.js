@@ -1,6 +1,6 @@
 // Documentation tab: sidebar list (like the Diagrams tab) + reader. Markdown rendered, .txt as plain text.
 // ---------- Docs (from js/doc-data.js) ----------
-const REPO_BLOB='https://github.com/Elvie-Abarth/Esti-whent-creazy-whit-the-protject/blob/master/';
+const REPO_BLOB='https://github.com/Elvie-Abarth/marsvin-webshop/blob/master/';
 let libP=null,docCur=null,docInit=false;
 
 function loadMarkdownLibs(){
