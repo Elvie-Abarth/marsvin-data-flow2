@@ -37,7 +37,7 @@ function route(path){
 }
 async function runScene(i){
   const my=++token; sc=i;
-  [...$('tabs').children].forEach((b,j)=>b.classList.toggle('on',j===i+1));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.scene===String(i)));
   const S=SCENES[i]; $('title').textContent=S.title;
   resetStock(); clearFx(); at=S.steps[0].path[0]; place(at);
   for(let k=0;k<S.steps.length;k++){

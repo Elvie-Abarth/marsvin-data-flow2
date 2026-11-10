@@ -25,8 +25,11 @@ js/
   animation.js        engine: routes the packet, highlights, timing, speed
   diagram-data.js     GENERATED - the .mermaid sources (see tools/)
   diagrams.js         the Diagrams tab (list, live rendering, zoom)
+  docs.js             the "📚 Documentation" tab (sidebar list + reader) (Markdown rendered, .txt as text)
+  doc-data.js         GENERATED - the documents' text (see tools/)
   app.js              startup: tabs, buttons, keys
 tools/
+  build-doc-data.py       regenerates js/doc-data.js from the real repo on GitHub
   build-diagram-data.py   regenerates js/diagram-data.js from the repo's diagrams/ folder
 ```
 
