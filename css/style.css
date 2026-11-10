@@ -98,3 +98,46 @@ body.doc main,body.doc footer{display:none}
 #doccanvas table{border-collapse:collapse;margin:10px 0;display:block;overflow:auto;max-width:100%}
 #doccanvas th,#doccanvas td{border:1px solid var(--line);padding:5px 10px;text-align:left}
 #doccanvas .msg{color:var(--mut)}
+
+/* ---------- Side navigation: tabs as a vertical list on the left ---------- */
+body{display:grid;grid-template-columns:210px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto}
+header{grid-column:1/-1}
+#tabs{grid-column:1;grid-row:2/4;flex-direction:column;flex-wrap:nowrap;gap:16px;padding:6px 10px 14px 24px;overflow:auto;border-right:1px solid var(--line)}
+#tabs .tg>div{flex-direction:column;flex-wrap:nowrap;gap:2px}
+#tabs .tg>span{padding-left:10px}
+#tabs button{border-radius:8px;border-color:transparent;background:none;text-align:left;padding:7px 10px;font-size:13.5px;color:var(--txt)}
+#tabs button:hover{background:var(--card)}
+#tabs button.dgtab,#tabs button.doctab{border-color:transparent}
+main,#dg,#doc{grid-column:2;grid-row:2}
+footer{grid-column:2;grid-row:3}
+@media(max-width:900px){
+  body{display:flex;flex-direction:column}
+  #tabs{flex-direction:row;flex-wrap:wrap;border-right:0;overflow:visible;padding:2px 24px 8px;gap:10px 24px}
+  #tabs .tg>div{flex-direction:row;flex-wrap:wrap;gap:5px}
+}
+#tabs{gap:10px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+#tabs .tg>div{gap:1px}
+#tabs button{width:100%;padding:5px 10px;font-size:13px}
+@media(max-width:900px){#tabs button{width:auto}}
+
+/* ---------- Narrower sidebars + slim dark scrollbars ---------- */
+body{grid-template-columns:165px minmax(0,1fr)}
+#tabs{padding:6px 6px 14px 14px}
+#tabs button{padding:5px 8px;font-size:12.5px}
+#tabs .tg>span{padding-left:8px}
+#dglist,#doclist{width:200px;padding:10px 8px}
+#dglist button,#doclist button{padding:6px 8px;font-size:13px}
+#dglist h3,#doclist h3{margin:10px 4px 4px}
+#dglist,#doclist,#dgcanvas,#doccanvas,aside{scrollbar-width:thin;scrollbar-color:#334155 transparent}
+
+/* ---------- Header bar ---------- */
+header{padding:10px 24px;gap:28px;align-items:center;justify-content:space-between;background:#0b1220;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:21px;background:linear-gradient(135deg,#0e7490,#22d3ee33);border:1px solid #22d3ee55}
+header h1{font-size:19px;line-height:1.1;letter-spacing:.01em}
+header .brand p{margin:2px 0 0;font-size:11.5px;color:var(--mut)}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.flow span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12.5px;color:var(--txt)}
+.flow i{font-style:normal;color:var(--read);font-size:14px}
+.flow em{font-style:normal;font-size:11.5px;color:var(--mut);margin-left:10px;padding-left:12px;border-left:1px solid var(--line)}
+@media(max-width:900px){.flow{display:none}}
