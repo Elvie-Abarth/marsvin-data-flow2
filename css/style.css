@@ -26,8 +26,7 @@ svg{width:100%;height:100%}
 .badge.r{fill:var(--read)}.badge.w{fill:var(--write)}.badge.a{fill:var(--warn)}
 .wire{stroke:#475569;stroke-width:2;fill:none}
 .link{stroke:var(--line);stroke-width:1.5;stroke-dasharray:5 6;fill:none;opacity:.7}
-#pkt{fill:var(--read);filter:drop-shadow(0 0 8px var(--read));transition:cx .8s ease-in-out,cy .8s ease-in-out,fill .3s}
-#pkt.w{fill:var(--write)}
+#pkt{pointer-events:none}
 aside{width:390px;background:#111827;border-radius:14px;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:12px}
 aside>*{flex-shrink:0}
 aside h2{margin:0;font-size:17px}
@@ -44,7 +43,6 @@ footer{padding:8px 24px 14px;display:flex;justify-content:center;gap:10px;align-
 footer button{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 16px;cursor:pointer;font-size:15px}
 footer button:hover{border-color:var(--read)}
 #prog{width:200px;height:6px;background:var(--card);border-radius:3px;overflow:hidden}
-#prog div{height:100%;width:0;background:var(--read);transition:width .4s}
 @media(max-width:900px){body{height:auto;min-height:100vh}main{flex-direction:column}#stage{height:70vw;min-height:320px;flex:none}aside{width:auto;overflow:visible}}
 
 #tabs button.dgtab{border-color:#a78bfa;color:#c4b5fd}
@@ -141,3 +139,68 @@ header .brand p{margin:2px 0 0;font-size:11.5px;color:var(--mut)}
 .flow i{font-style:normal;color:var(--read);font-size:14px}
 .flow em{font-style:normal;font-size:11.5px;color:var(--mut);margin-left:10px;padding-left:12px;border-left:1px solid var(--line)}
 @media(max-width:900px){.flow{display:none}}
+.logo{background:#F3EAD8;border-color:#B5643C66;padding:6px}
+.logo svg{width:100%;height:100%}
+.logo{width:60px;height:42px;padding:3px 5px;border-radius:12px}
+.logo{background:linear-gradient(135deg,#1e293b,#0f2a3a);border-color:#334155;padding:4px 6px}
+.logo img{width:100%;height:100%;object-fit:contain}
+
+/* ---------- Pip's hover animation (same as the webshop's chat button): lifts and tilts, then three droppings fall ---------- */
+.logo{position:relative;overflow:visible;cursor:pointer;z-index:5}
+.logo img{transition:transform .2s ease;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+.logo:hover img{transform:translateY(-3px) rotate(-4deg)}
+.logo::before,.logo::after,.logo i{content:"";position:absolute;right:3px;top:27px;width:6px;height:4px;border-radius:50%;background:#5C3A21;opacity:0;pointer-events:none}
+.logo::before{--kick:.2rem;--land:.35rem}
+.logo::after{--kick:.3rem;--land:.55rem}
+.logo i{--kick:.4rem;--land:.75rem}
+.logo:hover::before{animation:pip-dropping 1.2s linear .2s 1 both}
+.logo:hover::after{animation:pip-dropping 1.2s linear .55s 1 both}
+.logo:hover i{animation:pip-dropping 1.2s linear .9s 1 both}
+@keyframes pip-dropping{
+  0%{opacity:0;transform:translate(0,0) scale(.3);animation-timing-function:ease-out}
+  10%{opacity:1;transform:translate(0,0) scale(1);animation-timing-function:ease-in}
+  38%{opacity:1;transform:translate(0,.6rem) rotate(40deg);animation-timing-function:ease-out}
+  52%{opacity:1;transform:translate(var(--kick),.75rem) rotate(90deg);animation-timing-function:ease-in}
+  90%{opacity:1;transform:translate(var(--land),2.2rem) rotate(170deg)}
+  100%{opacity:0;transform:translate(var(--land),2.4rem) rotate(180deg)}
+}
+@media(prefers-reduced-motion:reduce){.logo img{transition:none}.logo:hover img{transform:none}.logo:hover::before,.logo:hover::after,.logo:hover i{animation:none}}
+
+/* ---------- Progress meter: a guinea pig walks to a carrot (idea from the webshop's password meter) ---------- */
+#prog{position:relative;width:340px;height:48px;background:none;border-radius:0;overflow:visible;margin-left:8px}
+#prog::before{content:"";position:absolute;left:0;right:0;bottom:0;height:9px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+#prog .pfill{position:absolute;left:0;bottom:0;width:22px;height:9px;border-radius:999px;background:var(--read);transition:width 1.2s ease-in-out}
+#prog .pwalker{position:absolute;left:0;bottom:4px;width:44px;transition:left 1.2s ease-in-out}
+#prog .ppig{display:block;width:100%;height:auto}
+#prog .pcarrot{position:absolute;right:2px;bottom:5px;width:26px;height:auto;transition:transform .3s ease,opacity .3s ease;transform-origin:20% 90%}
+#prog .pcarrot.eaten{transform:scale(.2) rotate(-30deg);opacity:0}
+#prog .pwalker.hop .ppig{animation:pg-hop .6s ease}
+#prog .pheart{position:absolute;left:50%;top:-2px;color:#f472b6;font-size:15px;line-height:1;opacity:0;pointer-events:none}
+#prog .pwalker.hop .pheart{animation:pg-heart 1s ease-out .15s}
+@keyframes pg-hop{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-8px) rotate(-6deg)}55%{transform:translateY(0) rotate(0)}75%{transform:translateY(-3px) rotate(3deg)}}
+@keyframes pg-heart{0%{opacity:0;transform:translate(-50%,0) scale(.6)}20%{opacity:1;transform:translate(-50%,-6px) scale(1.15)}100%{opacity:0;transform:translate(-50%,-24px) scale(.9)}}
+@media(prefers-reduced-motion:reduce){#prog .pfill,#prog .pwalker{transition:none}#prog .pwalker.hop .ppig,#prog .pwalker.hop .pheart{animation:none}}
+
+/* ---------- Read-aloud controls (Documentation) ---------- */
+#tts{display:flex;gap:6px;align-items:center;margin-left:auto}
+#tts[hidden]{display:none}
+#tts button,#tts select{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 11px;font-size:13px;cursor:pointer}
+#tts button:hover:not(:disabled),#tts select:hover{border-color:#f59e0b}
+#tts button:disabled{opacity:.45;cursor:default}
+#tts #ttsplay{border-color:#f59e0b;color:#fcd34d}
+#tts select#ttsvoice{max-width:190px}
+
+/* ---------- Bigger, easier-to-read boxes on the left of the diagram ---------- */
+.node[data-big] text{font-size:19px}
+.node[data-big] .sub{font-size:13px}
+.node[data-big] .badge{font-size:12.5px}
+#pkthop{transform-box:fill-box;transform-origin:50% 100%}
+
+/* ---------- Walking progress pig: waddle + alternating feet while he moves ---------- */
+#prog .pf{transform-box:fill-box;transform-origin:center}
+#prog .pwalker.walking .ppig{animation:pg-walk .32s ease-in-out infinite}
+#prog .pwalker.walking .pf1{animation:pg-step .32s ease-in-out infinite}
+#prog .pwalker.walking .pf2{animation:pg-step .32s ease-in-out infinite .16s}
+@keyframes pg-walk{0%,100%{transform:translateY(0) rotate(-2.5deg)}50%{transform:translateY(-2.5px) rotate(2.5deg)}}
+@keyframes pg-step{0%,100%{transform:translate(-2.5px,0)}50%{transform:translate(2.5px,-2px)}}
+@media(prefers-reduced-motion:reduce){#prog .pwalker.walking .ppig,#prog .pwalker.walking .pf{animation:none}}

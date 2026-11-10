@@ -45,8 +45,8 @@ function initDiagrams(){
   openDiagram(DG[0].id);
 }
 function showDiagrams(){
-  token++;document.body.classList.remove('doc');document.body.classList.add('dg');
+  token++;stopSpeech();document.body.classList.remove('doc');document.body.classList.add('dg');
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===$('dgtab')));
   if(!dgInit)initDiagrams();
 }
-function showAnimation(){document.body.classList.remove('dg','doc');$('doctab').classList.remove('on');$('dgtab').classList.remove('on')}
+function showAnimation(){stopSpeech();document.body.classList.remove('dg','doc');$('doctab').classList.remove('on');$('dgtab').classList.remove('on')}
