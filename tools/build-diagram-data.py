@@ -1,8 +1,7 @@
 """Regenerates js/diagram-data.js from the project's diagrams/*.mermaid files.
 
 Usage:   python tools/build-diagram-data.py [path-to-diagrams-folder]
-Default: the repo's diagrams/ folder, found from this script's location
-         (marsvin-web/DocumentationInformation/data-flow-animation/tools/ -> repo root).
+Default: the repo's diagrams/ folder if it exists next to this project, otherwise the real repo on GitHub.
 
 To add a diagram: put NAME.mermaid in the diagrams folder, add a line to META below, run this script.
 """
@@ -42,10 +41,21 @@ META = [
     ('Course models', 'marsvin-communication-checkout', 'Communication diagram', 'Checkout as a communication diagram.'),
 ]
 
+# Source: a local diagrams/ folder if one is given or exists, otherwise the real repo on GitHub.
+REPO = 'https://raw.githubusercontent.com/Elvie-Abarth/Esti-whent-creazy-whit-the-protject/master/diagrams/'
+use_local = len(sys.argv) > 1 or os.path.isdir(DIAGRAMS)
+
+def read_source(name):
+    if use_local:
+        with open(os.path.join(DIAGRAMS, name + '.mermaid'), encoding='utf8') as f:
+            return f.read()
+    import urllib.request
+    with urllib.request.urlopen(REPO + name + '.mermaid', timeout=30) as r:
+        return r.read().decode('utf-8')
+
 items = []
 for group, name, title, desc in META:
-    with open(os.path.join(DIAGRAMS, name + '.mermaid'), encoding='utf8') as f:
-        src = f.read()
+    src = read_source(name)
     items.append({'id': name, 'group': group, 'title': title, 'desc': desc, 'src': src})
 
 with open(OUT, 'w', encoding='utf8', newline='\n') as f:
