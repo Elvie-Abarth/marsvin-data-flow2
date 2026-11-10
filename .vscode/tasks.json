@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start project (localhost:5173)",
+      "type": "shell",
+      "command": "python -m http.server 5173 --bind 127.0.0.1",
+      "isBackground": true,
+      "problemMatcher": [],
+      "runOptions": { "runOn": "folderOpen" },
+      "presentation": { "reveal": "silent", "panel": "dedicated" }
+    }
+  ]
+}

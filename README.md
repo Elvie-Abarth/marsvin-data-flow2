@@ -3,7 +3,8 @@
 An interactive presentation of how data flows from the browser through the Razor Pages and Stores
 to the SQL Server database, plus all project diagrams.
 
-**Open `index.html` in a browser.** No build step and no server needed. The Diagrams tab needs
+**Run `start.bat`** (or `python -m http.server 5173`) and open <http://localhost:5173>. It always
+uses port 5173. You can also open `index.html` directly. No build step needed. The Diagrams tab needs
 internet once to load the Mermaid renderer.
 
 ## Folder layout

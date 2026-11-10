@@ -12,7 +12,7 @@ defineScenes([
  {name:"Admin orders",title:"Order handling by staff",steps:[
   {path:["customer","web","back"],cap:"Staff open /Admin/Orders and move an order forward, and type in the carrier’s tracking number.",sql:"POST /Admin/Orders\n[Authorize(Roles = \"Admin,Employee\")]"},
   {path:["back","Orders"],read:["Orders","OrderItems"],cap:"All orders are listed with buyer (account or guest), delivery, parcels and status.",sql:"SELECT o.OrderId, o.Status, o.TotalPrice,\n       o.TrackingNumber, u.DisplayName ...\nFROM dbo.Orders o\nLEFT JOIN dbo.Users u ON u.UserId = o.UserId;"},
-  {path:["Orders","back","Orders"],write:["Orders"],cap:"Status moves Placed → Processing → Sent / ready for pickup → Delivered (or Cancelled).",sql:"UPDATE dbo.Orders\nSET Status = @Status,\n    TrackingNumber = @Tracking\nWHERE OrderId = @OrderId;"},
+  {path:["Orders","back","Orders"],write:["Orders"],cap:"Status moves Placed → Processing → Sent / ready for pickup → Delivered. Cancelling is a separate action: it puts the stock and any sold guinea pig back.",sql:"UPDATE dbo.Orders\nSET Status = @Status,\n    TrackingNumber = @Tracking\nWHERE OrderId = @OrderId;"},
   {path:["Orders","back","mail"],active:["mail"],cap:"The buyer gets a “your order was sent” e-mail in the language the order was placed in (a guest has no account to remember it on).",sql:"OrderEmails ... PlacedInEnglish"}
  ]},
  {name:"Logbog",title:"Audit log and monitoring (user story 10)",steps:[

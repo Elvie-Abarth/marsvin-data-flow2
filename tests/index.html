@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Marsvin data-flow tests</title>
+<style>
+body{font:14px system-ui,sans-serif;background:#0f172a;color:#e2e8f0;margin:24px}
+h1{font-size:20px} #sum{font-size:16px;margin:8px 0 16px}
+.ok{color:#4ade80}.bad{color:#f87171}
+li{margin:2px 0;list-style:none} h2{font-size:15px;margin:18px 0 4px;color:#94a3b8}
+code{color:#94a3b8}
+</style>
+</head>
+<body>
+<h1>Marsvin data-flow tests</h1>
+<div id="sum">Running...</div>
+<div id="out"></div>
+<svg id="svg" viewBox="0 0 1200 770" style="display:none"></svg>
+
+<script>window.__loadErrors=[];addEventListener('error',e=>window.__loadErrors.push((e.filename||'').split('/').pop()+': '+e.message));</script>
+<script src="../js/schema.js"></script>
+<script src="../js/stage.js"></script>
+<script src="../js/scenes/registry.js"></script>
+<script src="../js/scenes/shop.js"></script>
+<script src="../js/scenes/accounts.js"></script>
+<script src="../js/scenes/admin.js"></script>
+<script src="../js/scenes/security.js"></script>
+<script src="../js/scenes/order.js"></script>
+<script src="facts.js"></script>
+<script src="tests.js"></script>
+</body>
+</html>
