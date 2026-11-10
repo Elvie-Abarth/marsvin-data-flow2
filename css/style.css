@@ -189,6 +189,8 @@ header .brand p{margin:2px 0 0;font-size:11.5px;color:var(--mut)}
 #tts button:disabled{opacity:.45;cursor:default}
 #tts #ttsplay{border-color:#f59e0b;color:#fcd34d}
 #tts select#ttsvoice{max-width:190px}
+#doccanvas.tts-on :is(p,li,h1,h2,h3,h4,h5,h6,blockquote,td,th,.tp):not(pre *):hover{background:rgba(245,158,11,.08);cursor:pointer;border-radius:4px}
+#doccanvas .tts-now{background:rgba(245,158,11,.2)!important;border-radius:4px}
 
 /* ---------- Bigger, easier-to-read boxes on the left of the diagram ---------- */
 .node[data-big] text{font-size:19px}

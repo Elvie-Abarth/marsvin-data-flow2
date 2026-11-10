@@ -16,7 +16,14 @@ async function openDoc(id){
   $('doctitle').textContent=d.title;
   $('docsrc').href=REPO_BLOB+d.path;$('docsrc').textContent=d.path;
   const c=$('doccanvas');c.scrollTop=0;
-  const plain=()=>{c.innerHTML='';const p=document.createElement('pre');p.textContent=d.text;c.appendChild(p)};
+  const plain=()=>{ // paragraphs are wrapped in spans so read-aloud can start from a clicked one
+    c.innerHTML='';const p=document.createElement('pre');
+    d.text.split(/(\n\s*\n)/).forEach((s,i)=>{
+      if(i%2||!s.trim()){p.appendChild(document.createTextNode(s));return}
+      const sp=document.createElement('span');sp.className='tp';sp.textContent=s;p.appendChild(sp);
+    });
+    c.appendChild(p);
+  };
   if(!d.md){plain();return}
   c.innerHTML='<div class="msg">Rendering…</div>';
   try{
@@ -42,24 +49,38 @@ function showDocs(){
 // ---------- Read aloud (browser speech synthesis; no internet or API needed) ----------
 const TTS=('speechSynthesis' in window)?window.speechSynthesis:null;
 let ttsQueue=[],ttsIdx=0,ttsState='idle',ttsRun=0;
-// What gets read: headings, paragraphs and list items of a Markdown doc (code blocks are skipped), or the paragraphs of a .txt doc.
+let ttsU=null,ttsT=0,ttsLen=0,ttsTry=0,ttsMarked=null; // ttsU keeps the utterance referenced (Chrome drops onend if it is garbage collected)
+// The blocks that can be read (and clicked to start from): headings, paragraphs and list items of a Markdown doc (code blocks are skipped), or the paragraphs of a .txt doc.
+function ttsBlocks(){
+  const c=$('doccanvas'),tp=[...c.querySelectorAll('.tp')];
+  if(tp.length)return tp;
+  return [...c.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,blockquote,td,th')]
+    .filter(e=>!e.closest('pre')&&!e.querySelector('p,li,h1,h2,h3,h4,h5,h6,blockquote,pre'));
+}
+// Each queue item is {el, text}: short chunks (one sentence-ish each), because long utterances get cut off by some browsers.
 function ttsText(){
-  const d=DOC_DATA.find(x=>x.id===docCur);if(!d)return[];
-  let parts;
-  if(d.md){
-    const c=$('doccanvas');
-    parts=[...c.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,blockquote,td,th')]
-      .filter(e=>!e.closest('pre')&&!e.querySelector('p,li,h1,h2,h3,h4,h5,h6,blockquote,pre'))
-      .map(e=>e.textContent);
-  }else{
-    parts=d.text.split(/\n\s*\n/).map(p=>p.split('\n').filter(l=>!/^[\s=\-_*#~]{3,}$/.test(l)).join(' '));
-  }
-  // short chunks (one sentence-ish each): long utterances get cut off by some browsers
-  return parts.flatMap(p=>(p.replace(/\s+/g,' ').trim().match(/[^.!?:;]+[.!?:;]?\s*/g)||[]))
-    .map(s=>s.trim()).filter(s=>/[A-Za-z0-9]/.test(s)).flatMap(s=>{
-      const out=[];while(s.length>220){let k=s.lastIndexOf(' ',220);if(k<80)k=220;out.push(s.slice(0,k));s=s.slice(k).trim()}
-      out.push(s);return out;
-    });
+  const out=[];
+  ttsBlocks().forEach(el=>{
+    let t=el.textContent;
+    if(el.classList.contains('tp'))t=t.split('\n').filter(l=>!/^[\s=\-_*#~]{3,}$/.test(l)).join(' ');
+    (t.replace(/\s+/g,' ').trim().match(/[^.!?:;]+[.!?:;]?\s*/g)||[])
+      .map(s=>s.trim()).filter(s=>/[A-Za-z0-9]/.test(s)).forEach(s=>{
+        while(s.length>220){let k=s.lastIndexOf(' ',220);if(k<80)k=220;out.push({el,text:s.slice(0,k)});s=s.slice(k).trim()}
+        out.push({el,text:s});
+      });
+  });
+  return out;
+}
+function ttsMark(el){
+  if(ttsMarked)ttsMarked.classList.remove('tts-now');
+  ttsMarked=el||null;
+  if(el){el.classList.add('tts-now');el.scrollIntoView({block:'nearest',behavior:'smooth'})}
+}
+function ttsBegin(startEl){ // read from the start, or from the block that was clicked
+  const q=ttsText();if(!q.length)return;
+  ttsQueue=q;ttsIdx=0;
+  if(startEl){const k=q.findIndex(x=>x.el===startEl);if(k>=0)ttsIdx=k}
+  ttsRun++;TTS.cancel();ttsState='playing';ttsTry=0;ttsUi();ttsSpeak();
 }
 function ttsUi(){
   const b=$('ttsplay');
@@ -69,18 +90,33 @@ function ttsUi(){
 function ttsVoice(){const n=$('ttsvoice').value;return TTS.getVoices().find(v=>v.name===n)||null}
 function ttsSpeak(){
   const run=ttsRun;
-  if(ttsIdx>=ttsQueue.length){ttsState='idle';ttsUi();return}
-  const u=new SpeechSynthesisUtterance(ttsQueue[ttsIdx]);
-  u.rate=parseFloat($('ttsrate').value)||1;
+  if(ttsIdx>=ttsQueue.length){ttsState='idle';ttsMark(null);ttsUi();return}
+  const item=ttsQueue[ttsIdx];
+  const u=new SpeechSynthesisUtterance(item.text);
+  const rate=parseFloat($('ttsrate').value)||1;
+  u.rate=rate;
   const v=ttsVoice();if(v){u.voice=v;u.lang=v.lang}else u.lang='en-US';
-  u.onend=()=>{if(run!==ttsRun)return;ttsIdx++;ttsSpeak()};
+  u.onstart=u.onboundary=()=>{if(run===ttsRun)ttsT=Date.now()};
+  u.onend=()=>{if(run!==ttsRun)return;ttsTry=0;ttsIdx++;ttsSpeak()};
   u.onerror=e=>{if(run!==ttsRun)return;if(e.error==='interrupted'||e.error==='canceled')return;ttsIdx++;ttsSpeak()};
+  ttsU=u;ttsT=Date.now();ttsLen=item.text.length/rate;
+  ttsMark(item.el);
   TTS.speak(u);
 }
 function stopSpeech(){
   if(!TTS)return;
-  ttsRun++;TTS.cancel();ttsState='idle';ttsQueue=[];ttsIdx=0;ttsUi();
+  ttsRun++;TTS.cancel();ttsState='idle';ttsQueue=[];ttsIdx=0;ttsMark(null);ttsUi();
 }
+// Watchdog: Chrome sometimes stalls (stuck "paused", or an utterance that never ends). Resume it, retry the sentence, then skip it.
+setInterval(()=>{
+  if(!TTS||ttsState!=='playing')return;
+  if(TTS.paused)TTS.resume();
+  if(Date.now()-ttsT>ttsLen/14*1000+5000){
+    ttsRun++;TTS.cancel();
+    if(++ttsTry>=2){ttsTry=0;ttsIdx++}
+    ttsSpeak();
+  }
+},1000);
 function restartSpeech(){ // speed / voice changed while reading: carry on from the current sentence
   if(ttsState==='idle')return;
   ttsRun++;TTS.cancel();ttsState='playing';ttsUi();ttsSpeak();
@@ -102,9 +138,16 @@ function initTts(){
     if(ttsState==='playing'){TTS.pause();ttsState='paused';ttsUi();return}
     if(ttsState==='paused'){TTS.resume();ttsState='playing';ttsUi();return}
     if($('doccanvas').querySelector('.msg'))return; // still rendering
-    ttsQueue=ttsText();ttsIdx=0;if(!ttsQueue.length)return;
-    ttsRun++;TTS.cancel();ttsState='playing';ttsUi();ttsSpeak();
+    ttsBegin();
   };
+  // click a heading / paragraph / list item to start reading from there (not when selecting text or clicking a link)
+  $('doccanvas').classList.add('tts-on');
+  $('doccanvas').addEventListener('click',e=>{
+    if(e.target.closest('a')||String(getSelection()).trim())return;
+    if($('doccanvas').querySelector('.msg'))return;
+    const b=ttsBlocks().find(x=>x.contains(e.target));
+    if(b)ttsBegin(b);
+  });
   $('ttsstop').onclick=stopSpeech;
   $('ttsrate').onchange=restartSpeech;
   $('ttsvoice').onchange=()=>{try{localStorage.setItem('ttsVoice',$('ttsvoice').value)}catch(e){}restartSpeech()};
