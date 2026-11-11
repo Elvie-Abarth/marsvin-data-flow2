@@ -14,6 +14,7 @@ DOCS = [
     ('Start', 'README.md', 'Project README'),
     ('Start', 'marsvin-web/README.md', 'Web app README'),
     ('Architecture', 'marsvin-web/DocumentationInformation/WEBSITE-ARCHITECTURE.md', 'Website architecture'),
+    ('Architecture', 'marsvin-web/DocumentationInformation/USER-STORIES.md', 'User stories'),
     ('Architecture', 'marsvin-web/DocumentationInformation/DATABASE-ARCHITECTURE.md', 'Database architecture'),
     ('Architecture', 'marsvin-web/DocumentationInformation/DATABASE-CREATION-SCRIPT.md', 'Database creation script'),
     ('Notes', 'marsvin-web/DocumentationInformation/DATABASE-NOTES.txt', 'Database notes'),
